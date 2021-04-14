@@ -138,7 +138,7 @@ function get_device_info(device) {
 	return info;
 }
 
-function adjust_device(device, action, new_state) {
+function adjust_device(device, a, b, c) {
 	console.log("adjust_device");
 	to_return = {};
 	var url = baseurl+"?token="+user_info["kasa_token"];
@@ -147,17 +147,11 @@ function adjust_device(device, action, new_state) {
 		"method": "passthrough",
 		"params": {
 			"deviceId": device_id,
-			"requestData": {
-				"smartlife.iot.smartbulb.lightingservice": {
-					"transition_light_state": {
-						"ignore_default": 1
-					}
-				}
-			}
+			"requestData": {}
 		}
-	}
-
-	data["params"]["requestData"]["smartlife.iot.smartbulb.lightingservice"]["transition_light_state"][action] = new_state;
+	};
+	data["params"]["requestData"][a] = {};
+	data["params"]["requestData"][a][b] = c;
 
 	$.ajax({
 		url: proxyurl+url,
@@ -171,7 +165,7 @@ function adjust_device(device, action, new_state) {
 			to_return = json;
 		}
 	});
-	return to_return
+	return to_return;
 }
 
 function do_login() {
@@ -265,33 +259,45 @@ function toggle(device_no) {
 	} else {
 		new_state = 0;
 	}
-	success = adjust_device(device, "on_off", new_state);
-	if ("error_code" in success && success["error_code"] == 0){
-		device["info"]["light_state"]["on_off"] = new_state;
+	var a = "smartlife.iot.smartbulb.lightingservice";
+	var b = "transition_light_state";
+	var c = {"on_off": new_state};
+	success = adjust_device(device, a, b, c);
+	if ("result" in success && "responseData" in success["result"] &&
+			a in success["result"]["responseData"] &&
+			b in success["result"]["responseData"][a]) {
+		device["info"]["light_state"] = success["result"]["responseData"][a][b];
 		add_or_update_switch(device, device_no);
 	}
 }
 
 function change_brightness(device_no, new_brightness) {
 	console.log("change_brightness: "+new_brightness);
-	var this_type = "smartlife.iot.smartbulb.lightingservice"
+	var a = "smartlife.iot.smartbulb.lightingservice";
+	var b = "transition_light_state";
+	var c = {"brightness": parseInt(new_brightness)};
 	var device = user_info["devices"][device_no];
-	success = adjust_device(device, "brightness", new_brightness);
+	success = adjust_device(device, a, b, c);
 	if ("result" in success && "responseData" in success["result"] &&
-			this_type in success["result"]["responseData"] &&
-			"transition_light_state" in success["result"]["responseData"][this_type] &&
-			"brightness" in success["result"]["responseData"][this_type]["transition_light_state"]) {
-		device["info"]["light_state"]["brightness"] = success["result"]["responseData"][this_type]["transition_light_state"]["brightness"];
+			a in success["result"]["responseData"] &&
+			b in success["result"]["responseData"][a]) {
+		device["info"]["light_state"] = success["result"]["responseData"][a][b];
 		add_or_update_switch(device, device_no);
 	}
 }
 
 function change_color_temperature(device_no, new_temperature) {
-	console.log("change_color_temp");
+	console.log("change_color_temp: "+new_temperature);
 	var device = user_info["devices"][device_no];
-	success = adjust_device(device, "color_temp", new_temperature);
-	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
-		device["info"]["light_state"]["color_temp"] = new_temperature;
+	var a = "smartlife.iot.smartbulb.lightingservice";
+	var b = "transition_light_state";
+	var c = {"color_temp": parseInt(new_temperature)};
+	success = adjust_device(device, a, b, c);
+	if ("result" in success && "responseData" in success["result"] &&
+			a in success["result"]["responseData"] &&
+			b in success["result"]["responseData"][a]) {
+		device["info"]["light_state"] = success["result"]["responseData"][a][b];
+		add_or_update_switch(device, device_no);
 	}
 }
 
@@ -389,7 +395,7 @@ function createBrightnessSlider(device, device_no){
 	var brightnessDiv = createElement("input", "slider100");
 	brightnessDiv.id = "brightness_" + device_id;
 	brightnessDiv.type = "range";
-	brightnessDiv.min = 0;
+	brightnessDiv.min = 1;
 	brightnessDiv.max = 100;
 	brightnessDiv.value = device["info"]["light_state"]["brightness"];
 	brightnessDiv.onchange = function () { change_brightness(device_no, this.value) };
@@ -405,7 +411,7 @@ function createColorTempSlider(device, device_no){
 	var device_id = device["deviceId"];
 	var ctTable = createElement("table", "switchColorTemp");
 	var ctTd1 = createElement("td");
-	ctTd1.innerHTML = "<small>2700K</small>";
+	ctTd1.innerHTML = "<small>2500K</small>";
 	ctTable.appendChild(ctTd1);
 	var ctTd = createElement("td");
 	var colorTempDiv = createElement("input", "colorTempSlider");
@@ -418,7 +424,7 @@ function createColorTempSlider(device, device_no){
 	ctTd.appendChild(colorTempDiv);
 	ctTable.appendChild(ctTd);
 	var ctTd2 = createElement("td");
-	ctTd2.innerHTML = "<small>6500K</small>";
+	ctTd2.innerHTML = "<small>9000K</small>";
 	ctTable.appendChild(ctTd2);
 	return ctTable;
 }
@@ -478,16 +484,19 @@ function changeColor(element) {
 	device_no = element.id.replace("color_", "");
 	var device = user_info["devices"][device_no];
 	var t = $("#"+element.id).spectrum("get");
-	hsv = t.toHsv();
-	h = hsv["h"];
-	s = hsv["s"];
-	v = hsv["v"];
-	var new_color = {"hue": h, "saturation": s, "brightness": device["data"]["brightness"]};
-	success = adjust_device(device, "colorSet", "color", new_color);
-	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
-		device["data"]["hue"] = h;
-		device["data"]["saturation"] = s;
-		localStorage.devices = JSON.stringify(user_info["devices"]);
+	var hsv = t.toHsv();
+	var h = parseInt(hsv["h"]);
+	var s = parseInt(hsv["s"]*100);
+	var v = parseInt(hsv["v"]);
+	var a = "smartlife.iot.smartbulb.lightingservice";
+	var b = "transition_light_state";
+	var c = {"hue": h, "saturation": s, "color_temp": 0};
+	success = adjust_device(device, a, b, c);
+	if ("result" in success && "responseData" in success["result"] &&
+			a in success["result"]["responseData"] &&
+			b in success["result"]["responseData"][a]) {
+		device["info"]["light_state"] = success["result"]["responseData"][a][b];
+		add_or_update_switch(device, device_no);
 	}
 }
 
