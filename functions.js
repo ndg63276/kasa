@@ -374,7 +374,7 @@ function add_or_update_switch(device, device_no){
 		currentActionDiv.remove();
 		var newActionDiv = createElement("div", "switchAction");
 		newActionDiv.setAttribute("id", "action_" + device_id);
-		newActionDiv.innerHTML = createActionLink(device_no, online, state, type);
+		newActionDiv.innerHTML = createActionLink(device_no, online, state);
 		parentDiv.appendChild(newActionDiv);
 		if (device["info"]["is_dimmable"] && online == true) {
 			document.getElementById("brightness_" + device_id).value = device["info"]["light_state"]["brightness"];
@@ -454,13 +454,13 @@ function createColorTempSlider(device, device_no){
 	return ctTable;
 }
 
-function createActionLink(device, online, state){
+function createActionLink(device_no, online, state){
 	if (online == false) {
 		return '<a href="#" class="borderShadow ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
 	} else if (state == false) {
-		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device_no+');">Off</a>';
 	} else {
-		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device_no+');">On</a>';
 	}
 }
 
