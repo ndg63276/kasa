@@ -341,7 +341,7 @@ function add_or_update_switch(device, device_no){
 	var icon = device["icon"];
 	var currentActionDiv = $('#action_'+ device_id);
 	if(currentActionDiv.length === 0) {
-		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b " + getSwitchClass(type, state));
+		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b switch_" + Boolean(state));
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
 		var imgTable = createElement("table", "switchImg");
@@ -371,7 +371,7 @@ function add_or_update_switch(device, device_no){
 		var parentDiv = currentActionDiv.parent()[0];
 		parentDiv.classList.remove("switch_true");
 		parentDiv.classList.remove("switch_false");
-		parentDiv.classList.add(getSwitchClass(type, state));
+		parentDiv.classList.add("switch_"+Boolean(state));
 		currentActionDiv.remove();
 		var newActionDiv = createElement("div", "switchAction");
 		newActionDiv.setAttribute("id", "action_" + device_id);
@@ -390,10 +390,6 @@ function add_or_update_switch(device, device_no){
 		}
 	}
 	setUpColors();
-}
-
-function getSwitchClass(type, state){
-	return "switch_" + (type === "scene" ? "scene" : state);
 }
 
 function createColorSelector(device, device_no){
@@ -490,9 +486,7 @@ function isNullOrEmpty(entry){
 }
 
 function logout() {
-	setCookie("access_token", "", -1);
-	setCookie("sl_refresh_token", "", -1);
-	setCookie("sl_expires_in", "", -1);
+	setCookie("kasa_token", "", -1);
 	location.reload();
 }
 
