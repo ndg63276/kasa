@@ -253,8 +253,7 @@ function toggle(device_no) {
 	console.log("toggle");
 	var device = user_info["devices"][device_no];
 	state = device["info"]["light_state"]["on_off"];
-	var dev_type = device["deviceType"];
-	if (state == false || dev_type === "scene") {
+	if (state == false) {
 		new_state = 1;
 	} else {
 		new_state = 0;
@@ -331,14 +330,14 @@ function add_or_update_switch(device, device_no){
 	console.log(device);
 	var name = device["alias"];
 	var device_id = device["deviceId"];
-	var type = device["deviceType"];
+	var model = device["deviceModel"];
 	var state = 0;
 	if ("light_state" in device["info"]) {
 		state = device["info"]["light_state"]["on_off"];
 	}
 	var online = device["status"];
 	if (online == false) { state = false };
-	var icon = device["icon"];
+	var icon = device["icon"]; // probably null
 	var currentActionDiv = $('#action_'+ device_id);
 	if(currentActionDiv.length === 0) {
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b switch_" + Boolean(state));
@@ -346,7 +345,7 @@ function add_or_update_switch(device, device_no){
 		nameDiv.innerHTML = name;
 		var imgTable = createElement("table", "switchImg");
 		var imgTd = createElement("td");
-		imgTd.innerHTML = createImg(icon, name, type);
+		imgTd.innerHTML = createImg(icon, name, model);
 		imgTable.appendChild(imgTd);
 		if (device["info"]["is_color"] == 1 && online == true) {
 			var cTd = createColorSelector(device, device_no);
@@ -354,7 +353,7 @@ function add_or_update_switch(device, device_no){
 		}
 		var actionDiv = createElement("div", "switchAction");
 		actionDiv.setAttribute("id", "action_" + device_id);
-		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
+		actionDiv.innerHTML = createActionLink(device_no, online, state);
 		deviceDiv.appendChild(imgTable);
 		deviceDiv.appendChild(nameDiv);
 		deviceDiv.appendChild(actionDiv);
@@ -455,20 +454,19 @@ function createColorTempSlider(device, device_no){
 	return ctTable;
 }
 
-function createActionLink(device, online, state, type){
-	var onString = type === "scene" ? "Start" : "On";
+function createActionLink(device, online, state){
 	if (online == false) {
 		return '<a href="#" class="borderShadow ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
 	} else if (state == false) {
 		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
 	} else {
-		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">' + onString + '</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a>';
 	}
 }
 
-function createImg(icon, name, type){
+function createImg(icon, name, model){
 	if (isNullOrEmpty(icon)) {
-		return "<p>" + type + "</p>";
+		return "<p>" + model + "</p>";
 	}
 	return "<img width=50 src='" + icon + "' alt='" + name + "'>";
 }
