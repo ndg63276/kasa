@@ -301,6 +301,21 @@ function change_color_temperature(device_no, new_temperature) {
 	}
 }
 
+function auto_color_temperature(device_no) {
+	console.log("auto_color_temp");
+	var device = user_info["devices"][device_no];
+	var a = "smartlife.iot.smartbulb.lightingservice";
+	var b = "transition_light_state";
+	var c = {"mode": "circadian"};
+	success = adjust_device(device, a, b, c);
+	if ("result" in success && "responseData" in success["result"] &&
+			a in success["result"]["responseData"] &&
+			b in success["result"]["responseData"][a]) {
+		device["info"]["light_state"] = success["result"]["responseData"][a][b];
+		add_or_update_switch(device, device_no);
+	}
+}
+
 function on_logout() {
 	console.log("on_logout");
 	var switches = document.getElementById("switches");
@@ -367,6 +382,11 @@ function add_or_update_switch(device, device_no){
 		}
 		if (device["info"]["is_variable_color_temp"] && online == true) {
 			document.getElementById("colortemp_" + device_id).value = device["info"]["light_state"]["color_temp"];
+			if (device["info"]["light_state"]["mode"] == "circadian") {
+				document.getElementById("autocolortemp_" + device_id).classList.add("highlightButton");
+			} else {
+				document.getElementById("autocolortemp_" + device_id).classList.remove("highlightButton");
+			}
 		}
 	}
 	setUpColors();
@@ -377,7 +397,7 @@ function getSwitchClass(type, state){
 }
 
 function createColorSelector(device, device_no){
-	var cTd = createElement("td", "colorSelectorTd");
+	var cTd = createElement("td", "verticalAlignMiddle");
 	var inp = document.createElement("input", "colorSelector");
 	h = device["info"]["light_state"]["hue"];
 	s = device["info"]["light_state"]["saturation"];
@@ -410,11 +430,11 @@ function createBrightnessSlider(device, device_no){
 function createColorTempSlider(device, device_no){
 	var device_id = device["deviceId"];
 	var ctTable = createElement("table", "switchColorTemp");
-	var ctTd1 = createElement("td");
+	var ctTd1 = createElement("td", "verticalAlignBottom");
 	ctTd1.innerHTML = "<small>2500K</small>";
 	ctTable.appendChild(ctTd1);
 	var ctTd = createElement("td");
-	var colorTempDiv = createElement("input", "colorTempSlider");
+	var colorTempDiv = createElement("input", "colorTempSlider verticalAlignBottom");
 	colorTempDiv.id = "colortemp_" + device_id;
 	colorTempDiv.type = "range";
 	colorTempDiv.min = 2500;
@@ -423,9 +443,19 @@ function createColorTempSlider(device, device_no){
 	colorTempDiv.onchange = function () { change_color_temperature(device_no, this.value) };
 	ctTd.appendChild(colorTempDiv);
 	ctTable.appendChild(ctTd);
-	var ctTd2 = createElement("td");
+	var ctTd2 = createElement("td", "verticalAlignBottom");
 	ctTd2.innerHTML = "<small>9000K</small>";
 	ctTable.appendChild(ctTd2);
+	var ctTd3 = createElement("td");
+	var but = createElement("button");
+	but.innerHTML = "&#127748;&#127769;";
+	but.id = "autocolortemp_" + device_id;
+	but.onclick = function () { auto_color_temperature(device_no) };
+	if (device["info"]["light_state"]["mode"] == "circadian") {
+		but.classList.add("highlightButton");
+	}
+	ctTd3.appendChild(but);
+	ctTable.appendChild(ctTd3);
 	return ctTable;
 }
 

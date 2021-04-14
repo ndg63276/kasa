@@ -88,12 +88,20 @@ body[data-theme='b'] {
     grid-row: 5;
 }
 
-.colorSelectorTd{
+.verticalAlignMiddle{
     vertical-align: middle;
+}
+
+.verticalAlignBottom{
+    vertical-align: bottom;
 }
 
 .maxWidth100{
     max-width: 100px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.highlightButton{
+    background-color: #808080;
 }
