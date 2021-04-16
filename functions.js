@@ -25,7 +25,7 @@ $( document ).ready(function() {
 		on_logout();
 		user_info["logged_in"] = false;
 	}
-
+	createEditableNames();
 	readLocalStorage();
 	$('#autorefresh').on("change", function () {
 		localStorage.autoRefresh = $(this).prop("checked");
@@ -328,6 +328,7 @@ function add_or_update_switch(device, device_no){
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b switch_" + Boolean(state));
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
+		nameDiv.id = "name_"+device_id;
 		var imgTable = createElement("table", "switchImg");
 		var imgTd = createElement("td");
 		imgTd.innerHTML = createImg(icon, name, model);
@@ -513,3 +514,35 @@ function uuidv4() {
 		return v.toString(16);
 	});
 }
+
+function createEditableNames() {
+	$(document).on("click", "div.switchName", function() {
+		var thisid = event.target.id;
+		var txt = $(this).text();
+		$(this).replaceWith("<input id='"+thisid+"' class='switchName'/>");
+		$("#"+thisid).val(txt);
+		$("#"+thisid).data("prev", txt);
+		$("#"+thisid).focus();
+		$("#"+thisid).select();
+	});
+
+	$(document).on("keydown", "input.switchName", function(e) {
+		if (e.which == 13) { // enter key
+			event.preventDefault();
+			var txt = $(this).val();
+			var thisid = event.target.id;
+			var prev = $("#"+thisid).data("prev");
+			$(this).replaceWith("<div id='"+thisid+"' class='switchName'></div>");
+			var a = "smartlife.iot.common.system";
+			var b = "set_dev_alias";
+			var c = {"alias": txt};
+			success = adjust_device(device, a, b, c);
+			if (success["error_code"] == 0) {
+				$("#"+thisid).text(txt);
+			} else {
+				$("#"+thisid).text(prev);
+			}
+		}
+	});
+}
+
