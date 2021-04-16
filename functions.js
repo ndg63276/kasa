@@ -75,7 +75,7 @@ function store_tokens(json, storecreds) {
 
 function get_device_list() {
 	console.log("get_device_list");
-	to_return = {};
+	gdl_to_return = {};
 	var url = baseurl+"?token="+user_info["kasa_token"];
 	data = {
 		"method": "getDeviceList"
@@ -90,58 +90,43 @@ function get_device_list() {
 		success: function (json) {
 			console.log(json);
 			if ("result" in json && "deviceList" in json["result"]) {
-				to_return["devices"] = json["result"]["deviceList"];
-				to_return["success"] = true;
-				localStorage.devices = JSON.stringify(to_return["devices"]);
+				gdl_to_return["devices"] = json["result"]["deviceList"];
+				gdl_to_return["success"] = true;
+				localStorage.devices = JSON.stringify(gdl_to_return["devices"]);
 			}
 		}
 	});
-	for (device of to_return["devices"]) {
+	for (device of gdl_to_return["devices"]) {
 		device["info"] = get_device_info(device);
 	}
-	return to_return;
+	return gdl_to_return;
 }
 
 function get_device_info(device) {
 	console.log("get_device_info");
 	var info = {};
-	var appServerUrl = device["appServerUrl"];
-	var url = appServerUrl+"?token="+user_info["kasa_token"];
-	var device_id = device["deviceId"];
-	data = {
-		"method": "passthrough",
-		"params": {
-			"deviceId": device_id,
-			"requestData": {
-				"system": {
-					"get_sysinfo": null
-				}
-			}
-		}
+
+	var a = "system";
+	var b = "get_sysinfo";
+	var c = null;
+	success = adjust_device(device, a, b, c);
+	if ("result" in success && "responseData" in success["result"]
+			&& "system" in success["result"]["responseData"]
+			&& "get_sysinfo" in success["result"]["responseData"]["system"]) {
+		info = success["result"]["responseData"]["system"]["get_sysinfo"];
 	}
-	$.ajax({
-		url: proxyurl+url,
-		type: "POST",
-		contentType: "application/json",
-		data: JSON.stringify(data),
-		dataType: "json",
-		async: false,
-		success: function (json) {
-			console.log(json);
-			if ("result" in json && "responseData" in json["result"]
-					&& "system" in json["result"]["responseData"]
-					&& "get_sysinfo" in json["result"]["responseData"]["system"]) {
-				info = json["result"]["responseData"]["system"]["get_sysinfo"];
-			}
-		}
-	});
+
 	return info;
 }
 
 function adjust_device(device, a, b, c) {
 	console.log("adjust_device");
-	to_return = {};
-	var url = baseurl+"?token="+user_info["kasa_token"];
+	ad_to_return = {};
+	if ("appServerUrl" in device) {
+		var url = device["appServerUrl"]+"?token="+user_info["kasa_token"];
+	} else {
+		var url = baseurl+"?token="+user_info["kasa_token"];
+	}
 	var device_id = device["deviceId"];
 	var data = {
 		"method": "passthrough",
@@ -162,10 +147,10 @@ function adjust_device(device, a, b, c) {
 		async: false,
 		success: function (json) {
 			console.log(json);
-			to_return = json;
+			ad_to_return = json;
 		}
 	});
-	return to_return;
+	return ad_to_return;
 }
 
 function do_login() {
