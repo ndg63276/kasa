@@ -243,9 +243,15 @@ function toggle(device_no) {
 	} else {
 		new_state = 0;
 	}
-	var a = "smartlife.iot.smartbulb.lightingservice";
-	var b = "transition_light_state";
-	var c = {"on_off": new_state};
+	if ("relay_state" in device["info"]) {
+		var a = "system";
+		var b = "set_relay_state";
+		var c = {"state": new_state};
+	} else {
+		var a = "smartlife.iot.smartbulb.lightingservice";
+		var b = "transition_light_state";
+		var c = {"on_off": new_state};
+	}
 	success = adjust_device(device, a, b, c);
 	if ("result" in success && "responseData" in success["result"] &&
 			a in success["result"]["responseData"] &&
