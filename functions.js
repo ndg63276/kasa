@@ -165,7 +165,7 @@ function do_login() {
 	setTimeout(function(){
 		login(username, password, storecreds);
 		if (user_info["logged_in"] === true) {
-			device_list = get_device_list(false);
+			device_list = get_device_list();
 			user_info["devices"] = device_list["devices"]
 			on_login();
 		} else {
@@ -179,8 +179,6 @@ function check_login() {
 	console.log("check_login");
 	if (user_info["kasa_token"] !== "") {
 		device_list = get_device_list(false);
-		console.log("device_list");
-		console.log(device_list);
 		return device_list;
 	} else {
 		console.log("No kasa_token");
@@ -230,6 +228,8 @@ function update_devices() {
 	console.log("update_devices");
 	var devices = user_info["devices"];
 	for (device_no in devices) {
+		device = devices[device_no];
+		device["info"] = get_device_info(device);
 		add_or_update_switch(devices[device_no], device_no);
 	}
 }
@@ -318,7 +318,6 @@ function on_logout() {
 
 function add_or_update_switch(device, device_no){
 	console.log("add_or_update_switch");
-	console.log(device);
 	var name = device["alias"];
 	var device_id = device["deviceId"];
 	var model = device["deviceModel"];
