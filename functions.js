@@ -237,17 +237,15 @@ function update_devices() {
 function toggle(device_no) {
 	console.log("toggle");
 	var device = user_info["devices"][device_no];
-	state = device["info"]["light_state"]["on_off"];
-	if (state == false) {
-		new_state = 1;
-	} else {
-		new_state = 0;
-	}
 	if ("relay_state" in device["info"]) {
+		var state = device["info"]["relay_state"];
+		var new_state = state ? 0 : 1;
 		var a = "system";
 		var b = "set_relay_state";
 		var c = {"state": new_state};
 	} else {
+		var state = device["info"]["light_state"]["on_off"];
+		var new_state = state ? 0 : 1;
 		var a = "smartlife.iot.smartbulb.lightingservice";
 		var b = "transition_light_state";
 		var c = {"on_off": new_state};
@@ -256,7 +254,11 @@ function toggle(device_no) {
 	if ("result" in success && "responseData" in success["result"] &&
 			a in success["result"]["responseData"] &&
 			b in success["result"]["responseData"][a]) {
-		device["info"]["light_state"] = success["result"]["responseData"][a][b];
+		if ("relay_state" in device["info"]) {
+			device["info"]["relay_state"] = new_state;
+		} else {
+			device["info"]["light_state"] = success["result"]["responseData"][a][b];
+		}
 		add_or_update_switch(device, device_no);
 	}
 }
@@ -324,6 +326,8 @@ function add_or_update_switch(device, device_no){
 	var state = 0;
 	if ("light_state" in device["info"]) {
 		state = device["info"]["light_state"]["on_off"];
+	} else if ("relay_state" in device["info"]) {
+		state = device["info"]["relay_state"];
 	}
 	var online = device["status"];
 	if (online == false) { state = false };
