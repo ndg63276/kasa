@@ -337,7 +337,7 @@ function add_or_update_switch(device, device_no){
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b switch_" + Boolean(state));
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
-		nameDiv.id = "name_"+device_id;
+		nameDiv.id = "name_"+device_no;
 		var imgTable = createElement("table", "switchImg");
 		var imgTd = createElement("td");
 		imgTd.innerHTML = createImg(icon, name, model);
@@ -542,9 +542,11 @@ function createEditableNames() {
 			var thisid = event.target.id;
 			var prev = $("#"+thisid).data("prev");
 			$(this).replaceWith("<div id='"+thisid+"' class='switchName'></div>");
-			var a = "smartlife.iot.common.system";
+			var a = "system";
 			var b = "set_dev_alias";
 			var c = {"alias": txt};
+			var device_no = thisid.replace("name_", "");
+			var device = user_info["devices"][device_no];
 			success = adjust_device(device, a, b, c);
 			if (success["error_code"] == 0) {
 				$("#"+thisid).text(txt);
