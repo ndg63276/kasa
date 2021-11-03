@@ -1,5 +1,4 @@
 const baseurl = "https://wap.tplinkcloud.com";
-var proxyurl = "https://cors.smartathome.co.uk/";
 var autoRefreshTimer;
 var user_info = {};
 
@@ -47,7 +46,7 @@ function login(username, password, storecreds) {
 		}
 	}
 	$.ajax({
-		url: proxyurl+url,
+		url: url,
 		type: "POST",
 		contentType: "application/json",
 		data: JSON.stringify(data),
@@ -81,7 +80,7 @@ function get_device_list() {
 		"method": "getDeviceList"
 	}
 	$.ajax({
-		url: proxyurl+url,
+		url: url,
 		type: "POST",
 		contentType: "application/json",
 		data: JSON.stringify(data),
@@ -139,7 +138,7 @@ function adjust_device(device, a, b, c) {
 	data["params"]["requestData"][a][b] = c;
 
 	$.ajax({
-		url: proxyurl+url,
+		url: url,
 		type: "POST",
 		contentType: "application/json",
 		data: JSON.stringify(data),
